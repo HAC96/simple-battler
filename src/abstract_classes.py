@@ -2,13 +2,11 @@ import random
 from typing import Dict, List, Collection
 from abc import ABC, abstractmethod
 
-from actions import BasicAttack
-
 class Action(ABC):
     name: str
     base_power: float
     power_variance: float
-    is_multi_target: bool
+    is_multi_target: bool = False
     user: "Creature"
     @property
     def power(self):
@@ -95,7 +93,6 @@ class Creature(ABC):
         self.intelligence = intelligence
         self.hp_current = self.hp_max
         self.tracker = tracker
-        tracker.add_active_creature(self)
 
     def make_attack(self, action: Attack, target: "Creature") -> None:
         # max means hit chance won't drop below 0.05
@@ -104,6 +101,7 @@ class Creature(ABC):
             dmg = action.power
             if random.random() <= self.crit_chance:
                 dmg *= self.crit_mult
+            dmg = int(dmg)
             target.take_damage(dmg)
             print(f"{self.name} attacks {target.name} with {action.name} for {dmg} damage")
         else:
@@ -136,7 +134,7 @@ class Creature(ABC):
         pass
 
     def describe(self) -> str:
-        return f'{self.name} has {self.hp_current} hp left.'
+        return f'{self.name} has {self.hp_current} hp.'
 
     @abstractmethod
     def choose_action(self) -> None:
@@ -168,10 +166,9 @@ class NPC(Creature):
 
     def __init__(self, name: str, strength: int, dexterity: int, constitution: int, intelligence: int, tracker: "Tracker") -> None:
         super().__init__(name, strength, dexterity, constitution, intelligence, tracker)
-        self.actions[BasicAttack(self)] = 10
 
     def choose_action(self) -> None:
-        action = random.choices(list(self.actions.keys()), list(self.actions.values()))
+        action = random.choices(list(self.actions.keys()), list(self.actions.values()))[0]
         if isinstance(action, Spell) and isinstance(self, SpellcasterMixin):
             can_cast = self.try_cast_spell(action)
             if not can_cast:
@@ -199,7 +196,7 @@ class Player(Creature):
     def __init__(self, name: str, strength: int, dexterity: int, constitution: int, intelligence: int, tracker: "Tracker") -> None:
         tracker.player = self
         super().__init__(name, strength, dexterity, constitution, intelligence, tracker)
-        self.actions = [BasicAttack(self)]
+        self.xp = 0
 
     def choose_action(self) -> None:
         print("Choose an action by entering the number:")
@@ -211,12 +208,12 @@ class Player(Creature):
                 choice = int(input("> ")) - 1
             except ValueError:
                 print("Please enter a number:")
-        action = self.actions[choice - 1]
+        action = self.actions[choice]
         if isinstance(action, Spell) and isinstance(self, SpellcasterMixin):
             can_cast = self.try_cast_spell(action)
             if not can_cast:
                 self.choose_action()
-                return
+            return
         else:
             self.choose_target(action)
 
@@ -241,7 +238,6 @@ class Player(Creature):
                 self.do_action(action, [target], False)
 
     def gain_xp(self, xp: int) -> None:
-        print(f"You gain {xp} xp")
         self.xp += xp
         if self.xp > 100:
             self.xp -= 100
@@ -275,11 +271,11 @@ class Player(Creature):
         exit(0)
 
     def regen(self):
-        hp_regen = max(self.constitution / 10, 1)
+        hp_regen = max(int(self.constitution / 10), 1)
         self.hp_current += hp_regen
         print(f"{self.name} recovers {hp_regen} hp")
         if isinstance(self, SpellcasterMixin):
-            mp_regen = max(self.intelligence / 10, 1)
+            mp_regen = max(int(self.intelligence / 10), 1)
             self.mp_current += mp_regen
             print(f"{self.name} recovers {mp_regen} mp")
 

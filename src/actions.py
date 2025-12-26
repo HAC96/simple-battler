@@ -1,4 +1,4 @@
-from abstract_classes import Action, Attack, Healing, Buff, Debuff, Spell, Creature
+from .abstract_classes import Action, Attack, Healing, Buff, Debuff, Spell, Creature
 
 
 class BasicAttack(Attack):
@@ -27,7 +27,7 @@ class MinorHeal(Healing, Spell):
     name = "Basic Heal"
     @property
     def base_power(self):
-        return self.user.spell_power / 3
+        return self.user.spell_power * 0.8
     power_variance = 1
     mp_cost = 5
 
@@ -60,6 +60,7 @@ class FireBall(Attack, Spell):
     def base_power(self):
         return self.user.spell_power * 1.2
     mp_cost = 10
+    is_multi_target = True
 
     def describe(self):
         return f"{self.name}: An attack spell that targets multiple enemies. Costs {self.mp_cost} MP"
@@ -97,6 +98,7 @@ class MajorHeal(Healing, Spell):
     @property
     def base_power(self):
         return self.user.spell_power * 2
+    power_variance = 2
 
     def describe(self):
         return f"{self.name}: A strong healing spell. Costs {self.mp_cost} MP"
@@ -107,3 +109,15 @@ class Dodge(Buff):
 
     def describe(self):
         return f"{self.name}: Increase defence until the start of next turn."
+
+class GroupHeal(Healing, Spell):
+    name = "Group Heal"
+    mp_cost = 10
+    @property
+    def base_power(self):
+        return self.user.spell_power * 0.8
+    power_variance = 1
+    is_multi_target = True
+
+    def describe(self):
+        return f"{self.name}: A healing spell affecting multiple targets. Costs {self.mp_cost} MP"

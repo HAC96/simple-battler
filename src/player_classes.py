@@ -1,5 +1,5 @@
-from abstract_classes import Player, SpellcasterMixin, Tracker
-from actions import *
+from .abstract_classes import Player, SpellcasterMixin, Tracker
+from .actions import *
 
 class Warrior(Player):
     def __init__(self, name: str, tracker: Tracker) -> None:
@@ -54,6 +54,7 @@ class Mage(Player, SpellcasterMixin):
             intelligence=20,
             tracker=tracker
         )
+        self.mp_current = self.mp_max
         self.actions = [
             BasicAttack(self, "Spark"),
             LightningBolt(self),
@@ -71,6 +72,7 @@ class Priest(Player, SpellcasterMixin):
             intelligence=15,
             tracker=tracker
         )
+        self.mp_current = self.mp_max
         self.actions = [
             BasicAttack(self, "Strike"),
             MinorHeal(self),

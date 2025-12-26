@@ -1,5 +1,8 @@
-from src.abstract_classes import Tracker
+import random
+
+from src.enemies import *
 from src.player_classes import *
+
 
 def main():
     print("""Welcome to the dungeon!
@@ -35,18 +38,18 @@ Please enter a number to select your class:
     while name.strip() == "":
         print("Please name your character:")
         name = input("> ")
-    player = None
     tracker = Tracker()
+    player : Player
     match choice:
-        case 1:
+        case "1":
             player = Warrior(name, tracker)
-        case 2:
+        case "2":
             player = Rogue(name, tracker)
-        case 3:
+        case "3":
             player = Mage(name, tracker)
-        case 4:
+        case "4":
             player = Priest(name, tracker)
-    player.describe()
+    print(player.describe())
     new_encounter(tracker)
     while True: # continue until player dies
         player.choose_action()
@@ -65,10 +68,18 @@ def next_turn(tracker: Tracker):
         new_encounter(tracker)
 
 def new_encounter(tracker: Tracker):
+    enemy_chances = {
+        Goblin: 10,
+        DarkMage: 3,
+        Shaman: 3
+    }
     print("As you advance deeper into the dungeon, new enemies emerge to fight...")
-    # TODO: introduce logic to spawn new enemies and add to tracker
-    for creature in tracker.active_creatures:
-        creature.describe()
+    num_spawned = random.randint(1, 3)
+    for i in range(num_spawned):
+        creature_class = random.choices(list(enemy_chances.keys()), list(enemy_chances.values()))[0]
+        creature = creature_class(tracker)
+        print(creature.describe())
+        tracker.add_active_creature(creature)
 
 if __name__ == "__main__":
     main()
